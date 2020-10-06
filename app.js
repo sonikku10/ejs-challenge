@@ -53,30 +53,6 @@ app.get("/", function(req,res) {
 
   });
 
-
-  // app.get("/", function(req, res) {
-  //   Item.find({},function (err, foundItems) {
-  //
-  //     if (foundItems.length === 0) {
-  //       Item.insertMany(defaultItems, function(err){
-  //         if (err) {
-  //           console.log(err);
-  //         } else {
-  //           console.log("Items added!");
-  //         }
-  //       });
-  //       res.redirect("/");
-  //     } else {
-  //     res.render("list", {listTitle: "Today", newListItems: foundItems});
-  //     }
-  //   });
-  //
-  // });
-
-
-
-
-
 app.get("/about", function(req,res) {
   res.render("about", {
     aboutContent:aboutContent
@@ -93,22 +69,18 @@ app.get("/compose", function(req,res) {
   res.render("compose")
 });
 
-
-app.get("/posts/:postID", function(req,res) {
-  const requestedTitle = _.lowerCase(req.params.postID);
-  posts.forEach(function(post){
-    const storedTitle = _.lowerCase(post.title);
-    if (requestedTitle == storedTitle) {
-      res.render("post", {
-        postTitle: post.title,
-        postContent: post.content
-      });
+//Express Route Parameters
+app.get("/posts/:postId", function(req,res) {
+  const requestedPostId = req.params.postId;
+  Post.findOne({_id: requestedPostId}, function (err, post) {
+    if (!err) {
+      res.render("post", {postTitle: post.title, postContent: post.content});
     }
   });
 });
 
 
-
+//Composing new post will add to DB.
 app.post("/compose", function(req,res) {
 
   const postTitle = req.body.postTitle;
@@ -119,36 +91,23 @@ app.post("/compose", function(req,res) {
     content: postContent
   });
 
-  newPost.save();
-  console.log(newPost);
-  res.redirect("/");
-});
-
-/*
-app.post("/", function(req, res){
-
-  const itemName = req.body.newItem;
-  const listName = req.body.list;
-
-  const item = new Item({
-    name: itemName
+  newPost.save(function(err) {
+    if (!err) {
+      console.log(newPost);
+      res.redirect("/");
+    }
   });
 
-  if (listName === "Today") {
-    item.save();
-    res.redirect("/");
-  } else {
-    List.findOne({name: listName}, function (err, foundList){
-      foundList.items.push(item);
-      foundList.save();
-      res.redirect("/" + listName);
-    });
-  }
+});
 
-});*/
 
 
 //App is listening on server port.
-app.listen(3000, function() {
-  console.log("Server started on port 3000");
+let port = process.env.PORT;
+if (port == null || port == "") {
+  port = 3000;
+}
+
+app.listen(port, function() {
+  console.log("Server started successfully.");
 });
